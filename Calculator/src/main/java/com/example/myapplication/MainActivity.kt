@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     private var stmerror = false
     private var lastdigit = true
     private var lastdot = false
-    private var isLastOptr = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
