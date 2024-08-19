@@ -41,7 +41,7 @@
         android:gravity="end"
         android:text=""
         android:textColor="@color/black"
-        android:textSize="38sp"
+        android:textSize="35sp"
         app:layout_constraintBottom_toTopOf="@+id/buttonContainer4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

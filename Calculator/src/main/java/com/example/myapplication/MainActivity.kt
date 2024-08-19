@@ -5,8 +5,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -42,26 +40,50 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        toolbar.overflowIcon?.setTint(ContextCompat.getColor(this,R.color.black))
+        toolbar.overflowIcon?.setTint(ContextCompat.getColor(this, R.color.black))
         binding.result.text = "0"
     }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_settings -> {
-                // Handle Settings action
                 Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show()
                 true
             }
             R.id.action_history -> {
-                // Handle History action
                 Toast.makeText(this, "History clicked", Toast.LENGTH_SHORT).show()
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun updateResult() {
+        binding.operationtext.textSize = 35F
+        val currentText = binding.result.text.toString()
+        val expressionText = currentText.replace("×", "*").replace("÷", "/")
+
+        try {
+            val expression = Expression(expressionText)
+            val result = expression.calculate()
+
+            if (!result.isNaN()) {
+                val formattedResult = if (result == result.toInt().toDouble()) {
+                    result.toInt().toString()
+                } else {
+                    result.toString()
+                }
+                binding.operationtext.text = formattedResult
+            } else {
+                binding.operationtext.text = ""
+            }
+        } catch (e: Exception) {
+            binding.operationtext.text = ""
         }
     }
 
@@ -70,21 +92,20 @@ class MainActivity : AppCompatActivity() {
         val currentText = binding.result.text.toString()
 
         if (stmerror) {
-            // Reset the display if there's an error
             binding.result.text = buttonText
             binding.operationtext.text = ""
             stmerror = false
         } else {
             if (currentText == "0" && buttonText != ".") {
-                // Replace "0" with the new number unless it's a dot
                 binding.result.text = buttonText
             } else {
                 binding.result.append(buttonText)
             }
         }
 
-        vibratePhone(10)
         lastdigit = true
+        vibratePhone(10)
+        updateResult()
     }
 
     fun operator(view: View) {
@@ -95,11 +116,34 @@ class MainActivity : AppCompatActivity() {
             lastdigit = false
             lastdot = false
         } else if (!lastdigit && currentText.isNotEmpty()) {
-            // If the last character is an operator, replace it with the new one
             val newOperator = (view as Button).text.toString()
             binding.result.text = currentText.dropLast(1).plus(newOperator)
         }
+
         vibratePhone(20)
+        updateResult()
+    }
+
+    fun dot(view: View) {
+        if (!lastdot) {
+            if (lastdigit) {
+                binding.result.append(".")
+            } else {
+                binding.result.append("0.")
+            }
+            lastdot = true
+            lastdigit = false
+        } else {
+            Toast.makeText(this, "Invalid decimal point placement", Toast.LENGTH_LONG).show()
+        }
+        vibratePhone(20)
+        updateResult()
+    }
+
+    fun equal(view: View) {updateResult()
+    updateResult()
+        binding.operationtext.textSize = 40F
+        vibratePhone(30)
     }
 
     fun percentage(view: View) {
@@ -114,7 +158,6 @@ class MainActivity : AppCompatActivity() {
                     result.toString()
                 }
 
-                // Update result and operation text
                 binding.result.text = formattedResult
                 binding.operationtext.text = formattedResult
 
@@ -125,24 +168,6 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             showError()
-        }
-        vibratePhone(20)
-    }
-
-    fun dot(view: View) {
-
-        if (!lastdot) {
-            // Append a dot if no dot exists yet
-            if (lastdigit) {
-                binding.result.append(".")
-            } else {
-                // Add "0." if dot is pressed after an operator
-                binding.result.append("0.")
-            }
-            lastdot = true
-            lastdigit = false
-        } else {
-            Toast.makeText(this, "Invalid decimal point placement", Toast.LENGTH_LONG).show()
         }
         vibratePhone(20)
     }
@@ -165,7 +190,6 @@ class MainActivity : AppCompatActivity() {
             lastdigit = newText.isNotEmpty() && newText.lastOrNull()?.isDigit() ?: false
             lastdot = newText.contains(".")
         } else {
-            // Reset to 0 if only one character is left
             binding.result.text = "0"
             lastdigit = true
             lastdot = false
@@ -174,43 +198,7 @@ class MainActivity : AppCompatActivity() {
         vibratePhone(20)
     }
 
-
-    fun equal(view: View) {
-        if (lastdigit && !stmerror) {
-            try {
-                val expressionText = binding.result.text.toString()
-                    .replace("×", "*")
-                    .replace("÷", "/")
-
-                val expression = Expression(expressionText)
-                val result = expression.calculate()
-
-                if (result.isNaN()) {
-                    throw Exception("Invalid calculation")
-                }
-
-                val formattedResult = if (result == result.toInt().toDouble()) {
-                    result.toInt().toString()
-                } else {
-                    result.toString()
-                }
-
-                binding.operationtext.text = formattedResult
-                binding.result.text = expressionText
-
-                lastdigit = true
-                lastdot = formattedResult.contains(".")
-            } catch (e: Exception) {
-                showError()
-            }
-        } else {
-            showError()
-        }
-        vibratePhone(30)
-    }
-
     private fun showError() {
-        // Display an error message and reset relevant flags
         binding.operationtext.text = "Error"
         binding.result.text = "0"
         stmerror = true
