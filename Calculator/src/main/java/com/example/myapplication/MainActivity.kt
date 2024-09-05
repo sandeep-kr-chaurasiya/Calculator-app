@@ -63,21 +63,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateResult() {
         binding.operationtext.textSize = 35F
-        val currentText = binding.result.text.toString().replace("×", "*").replace("÷", "/")
+        val currentText = binding.result.text.toString()
+        val expressionText = currentText.replace("×", "*").replace("÷", "/")
 
         try {
-            val expression = Expression(currentText)
+            val expression = Expression(expressionText)
             val result = expression.calculate()
 
-            binding.operationtext.text = when {
-                result.isNaN() -> "Error"
-                result == result.toInt().toDouble() -> result.toInt().toString()
-                else -> result.toString()
+            if (!result.isNaN()) {
+                val formattedResult = if (result == result.toInt().toDouble()) {
+                    result.toInt().toString()
+                } else {
+                    result.toString()
+                }
+                binding.operationtext.text = formattedResult
+            } else {
+                binding.operationtext.text = ""
             }
-
-            stmerror = false
         } catch (e: Exception) {
-            showError()
+            binding.operationtext.text = ""
         }
     }
 
@@ -90,11 +94,14 @@ class MainActivity : AppCompatActivity() {
             binding.operationtext.text = ""
             stmerror = false
         } else {
-            binding.result.text = if (currentText == "0" && buttonText != ".") buttonText else currentText + buttonText
+            if (currentText == "0" && buttonText != ".") {
+                binding.result.text = buttonText
+            } else {
+                binding.result.append(buttonText)
+            }
         }
 
         lastdigit = true
-        lastdot = false
         vibratePhone(10)
         updateResult()
     }
@@ -108,7 +115,7 @@ class MainActivity : AppCompatActivity() {
             lastdot = false
         } else if (!lastdigit && currentText.isNotEmpty()) {
             val newOperator = (view as Button).text.toString()
-            binding.result.text = currentText.dropLast(1) + newOperator
+            binding.result.text = currentText.dropLast(1).plus(newOperator)
         }
 
         vibratePhone(20)
@@ -117,7 +124,11 @@ class MainActivity : AppCompatActivity() {
 
     fun dot(view: View) {
         if (!lastdot) {
-            binding.result.append(if (lastdigit) "." else "0.")
+            if (lastdigit) {
+                binding.result.append(".")
+            } else {
+                binding.result.append("0.")
+            }
             lastdot = true
             lastdigit = false
         } else {
@@ -127,8 +138,8 @@ class MainActivity : AppCompatActivity() {
         updateResult()
     }
 
-    fun equal(view: View) {
-        updateResult()
+    fun equal(view: View) {updateResult()
+    updateResult()
         binding.operationtext.textSize = 40F
         vibratePhone(30)
     }
@@ -139,12 +150,17 @@ class MainActivity : AppCompatActivity() {
                 val currentText = binding.result.text.toString()
                 val value = currentText.toDouble()
                 val result = value / 100
+                val formattedResult = if (result == result.toInt().toDouble()) {
+                    result.toInt().toString()
+                } else {
+                    result.toString()
+                }
 
-                binding.result.text = result.toString()
-                binding.operationtext.text = result.toString()
+                binding.result.text = formattedResult
+                binding.operationtext.text = formattedResult
 
                 lastdigit = true
-                lastdot = result.toString().contains(".")
+                lastdot = formattedResult.contains(".")
             } catch (e: Exception) {
                 showError()
             }
@@ -166,15 +182,16 @@ class MainActivity : AppCompatActivity() {
     fun backspace(view: View) {
         val currentText = binding.result.text.toString()
 
-        binding.result.text = if (currentText.length > 1) {
-            currentText.dropLast(1)
+        if (currentText.length > 1) {
+            binding.result.text = currentText.dropLast(1)
+            val newText = binding.result.text.toString()
+            lastdigit = newText.isNotEmpty() && newText.lastOrNull()?.isDigit() ?: false
+            lastdot = newText.contains(".")
         } else {
-            "0"
+            binding.result.text = "0"
+            lastdigit = true
+            lastdot = false
         }
-
-        val newText = binding.result.text.toString()
-        lastdigit = newText.isNotEmpty() && newText.lastOrNull()?.isDigit() ?: false
-        lastdot = newText.contains(".")
         binding.operationtext.text = ""
         vibratePhone(20)
     }
