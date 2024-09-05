@@ -29,8 +29,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Set up the Toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
 
         // Apply window insets
@@ -65,25 +63,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateResult() {
         binding.operationtext.textSize = 35F
-        val currentText = binding.result.text.toString()
-        val expressionText = currentText.replace("×", "*").replace("÷", "/")
+        val currentText = binding.result.text.toString().replace("×", "*").replace("÷", "/")
 
         try {
-            val expression = Expression(expressionText)
+            val expression = Expression(currentText)
             val result = expression.calculate()
 
-            if (!result.isNaN()) {
-                val formattedResult = if (result == result.toInt().toDouble()) {
-                    result.toInt().toString()
-                } else {
-                    result.toString()
-                }
-                binding.operationtext.text = formattedResult
-            } else {
-                binding.operationtext.text = ""
+            binding.operationtext.text = when {
+                result.isNaN() -> "Error"
+                result == result.toInt().toDouble() -> result.toInt().toString()
+                else -> result.toString()
             }
+
+            stmerror = false
         } catch (e: Exception) {
-            binding.operationtext.text = ""
+            showError()
         }
     }
 
@@ -96,14 +90,11 @@ class MainActivity : AppCompatActivity() {
             binding.operationtext.text = ""
             stmerror = false
         } else {
-            if (currentText == "0" && buttonText != ".") {
-                binding.result.text = buttonText
-            } else {
-                binding.result.append(buttonText)
-            }
+            binding.result.text = if (currentText == "0" && buttonText != ".") buttonText else currentText + buttonText
         }
 
         lastdigit = true
+        lastdot = false
         vibratePhone(10)
         updateResult()
     }
@@ -117,7 +108,7 @@ class MainActivity : AppCompatActivity() {
             lastdot = false
         } else if (!lastdigit && currentText.isNotEmpty()) {
             val newOperator = (view as Button).text.toString()
-            binding.result.text = currentText.dropLast(1).plus(newOperator)
+            binding.result.text = currentText.dropLast(1) + newOperator
         }
 
         vibratePhone(20)
@@ -126,11 +117,7 @@ class MainActivity : AppCompatActivity() {
 
     fun dot(view: View) {
         if (!lastdot) {
-            if (lastdigit) {
-                binding.result.append(".")
-            } else {
-                binding.result.append("0.")
-            }
+            binding.result.append(if (lastdigit) "." else "0.")
             lastdot = true
             lastdigit = false
         } else {
@@ -140,8 +127,8 @@ class MainActivity : AppCompatActivity() {
         updateResult()
     }
 
-    fun equal(view: View) {updateResult()
-    updateResult()
+    fun equal(view: View) {
+        updateResult()
         binding.operationtext.textSize = 40F
         vibratePhone(30)
     }
@@ -152,17 +139,12 @@ class MainActivity : AppCompatActivity() {
                 val currentText = binding.result.text.toString()
                 val value = currentText.toDouble()
                 val result = value / 100
-                val formattedResult = if (result == result.toInt().toDouble()) {
-                    result.toInt().toString()
-                } else {
-                    result.toString()
-                }
 
-                binding.result.text = formattedResult
-                binding.operationtext.text = formattedResult
+                binding.result.text = result.toString()
+                binding.operationtext.text = result.toString()
 
                 lastdigit = true
-                lastdot = formattedResult.contains(".")
+                lastdot = result.toString().contains(".")
             } catch (e: Exception) {
                 showError()
             }
@@ -184,16 +166,15 @@ class MainActivity : AppCompatActivity() {
     fun backspace(view: View) {
         val currentText = binding.result.text.toString()
 
-        if (currentText.length > 1) {
-            binding.result.text = currentText.dropLast(1)
-            val newText = binding.result.text.toString()
-            lastdigit = newText.isNotEmpty() && newText.lastOrNull()?.isDigit() ?: false
-            lastdot = newText.contains(".")
+        binding.result.text = if (currentText.length > 1) {
+            currentText.dropLast(1)
         } else {
-            binding.result.text = "0"
-            lastdigit = true
-            lastdot = false
+            "0"
         }
+
+        val newText = binding.result.text.toString()
+        lastdigit = newText.isNotEmpty() && newText.lastOrNull()?.isDigit() ?: false
+        lastdot = newText.contains(".")
         binding.operationtext.text = ""
         vibratePhone(20)
     }
