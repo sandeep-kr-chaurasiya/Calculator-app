@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     fun num(view: View) {
         val buttonText = (view as Button).text.toString()
         val currentText = binding.result.text.toString()
@@ -100,7 +101,6 @@ class MainActivity : AppCompatActivity() {
                 binding.result.append(buttonText)
             }
         }
-
         lastdigit = true
         vibratePhone(10)
         updateResult()
@@ -117,7 +117,6 @@ class MainActivity : AppCompatActivity() {
             val newOperator = (view as Button).text.toString()
             binding.result.text = currentText.dropLast(1).plus(newOperator)
         }
-
         vibratePhone(20)
         updateResult()
     }
@@ -192,6 +191,7 @@ class MainActivity : AppCompatActivity() {
             lastdigit = true
             lastdot = false
         }
+
         binding.operationtext.text = ""
         vibratePhone(20)
     }
