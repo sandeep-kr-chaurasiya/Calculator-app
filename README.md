@@ -6,7 +6,6 @@ This Android Calculator App allows users to perform basic arithmetic operations.
 
 ## Features
 
-
 - **Basic Arithmetic Operations**: Supports addition, subtraction, multiplication, and division.
 - **Decimal Points**: Allows input of decimal numbers.
 - **Percentage Calculation**: Computes percentages of the current number.
